@@ -34,5 +34,7 @@
 
 ### 方式二：源码运行
 ```bash
+1.先导入所需第三方模块，已将所有第三方模块放入requirements.txt中
 pip install -r requirements.txt
-python main.py
+2.运行main.py文件即可
+dm_pb2.py是protobuf解析用的，需要将dm_pb2.py文件和main.py放同一个目录下运行
