@@ -26,7 +26,7 @@
 ## 🎬 功能演示
 
 观看视频了解 BiliEasy 的完整使用教程（B站）：
-[点击观看：BiliEasy 安装与使用教程]
+[点击观看：BiliEasy 使用教程]
 https://www.bilibili.com/video/BV1zeLX69Er3/?spm_id_from=333.1387.homepage.video_card.click&vd_source=726e4efb47a201228fe295f8e1d6e5c2
 
 ## 🚀 快速开始
