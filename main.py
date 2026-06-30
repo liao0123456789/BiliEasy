@@ -17,8 +17,9 @@ from PyQt6.QtWidgets import (
     QLineEdit, QPushButton, QLabel, QFileDialog, QProgressBar, QMessageBox,QComboBox,QDialog,QTextEdit,QFrame
 )
 
-#爬虫类
+
 class BiliCrawler:
+    """爬虫类，下载视频，弹幕等方法全在此类中"""
     def __init__(self, cookie=None):
         self.head = {
             'referer': 'https://www.bilibili.com/',
@@ -32,6 +33,7 @@ class BiliCrawler:
         self.head['cookie'] = cookie
 
     def get_page_text(self, url):
+        """获取页面源代码"""
         resp = requests.get(url=url, headers=self.head)
         resp.encoding = 'utf-8'
         return resp.text
@@ -41,6 +43,7 @@ class BiliCrawler:
         return re.sub(r'[\\/*?:"<>|]', '-', title)
 
     def huoqu_shouchangjia_dange_url_biaoti(self,html):
+        """获取收藏夹的视频标题"""
         try:
             soup = BeautifulSoup(html, 'html.parser')
             h1 = soup.find('h1')
@@ -57,6 +60,7 @@ class BiliCrawler:
         return title
 
     def huoqu_danye_shouchang_url_list(self,js):
+        """获取收藏夹视频url，返回url列表"""
         # 接受传入的json数据，将json数据转换为字典
         data = json.loads(js, strict=False)  # 将字符串转为字典
         bv_list = [item['bv_id'] for item in data['data']['medias']]  # 获取所有bvid号
@@ -71,6 +75,7 @@ class BiliCrawler:
         return l
 
     def huoqu_danye_shouchang_biaoqian(self,js):
+        """用于判断收藏页是否到底"""
         # 接受传入的json数据，将json数据转换为字典
         data = json.loads(js, strict=False)  # 将字符串转为字典
         # b站通过has_more的true或者false来判断是否有更多的收藏页
@@ -78,7 +83,7 @@ class BiliCrawler:
         return flag
 
     def get_duo_bvid_page_title(self,html_text):
-
+        """获取多个视频标题"""
         # 假设html_text是你提供的HTML字符串
         soup = BeautifulSoup(html_text, 'html.parser')
 
@@ -119,7 +124,7 @@ class BiliCrawler:
         return l
 
     def get_dange_bvid_page_title(self, html_content):
-
+        """获取单个视频标题"""
         soup = BeautifulSoup(html_content, 'html.parser')
 
         # 存储标题的列表
@@ -178,7 +183,7 @@ class BiliCrawler:
         return titles  # 返回空列表
 
     def get_page_bvid(self,html_text):
-
+        """获取页面里的bvid号"""
         # 假设html_text是你提供的HTML字符串
         soup = BeautifulSoup(html_text, 'html.parser')
 
@@ -219,6 +224,7 @@ class BiliCrawler:
         return l
 
     def heji_url_pinjie(self,bvid_list):
+        """拼接合集url"""
         l2 = []
         pinjie_url = 'https://www.bilibili.com/video/'
         for i in bvid_list:
@@ -330,7 +336,7 @@ class BiliCrawler:
                 return 1
 
     def get_danmu_id(self,str_text):
-        # 使用正则提取弹幕链接的视频id号
+        """使用正则提取弹幕链接的视频id号"""
         pattern = r'upgcxcode/\d+/\d+/(\d+)'
         matches = re.findall(pattern, str_text)#视频号id就在文档的baseurl链接里面，通过正则可提取到
 
@@ -344,17 +350,18 @@ class BiliCrawler:
             return None
 
     def pinjie_danmu_url(self,target_number):
-        #返回弹幕的url
+        """返回弹幕的url"""
         pinjie_url = f'https://api.bilibili.com/x/v2/dm/wbi/web/seg.so?type=1&oid={str(target_number)}&segment_index=1'#只需获取视频的对应号码
         return pinjie_url
 
     def get_danmu_content(self,url):
-        #请求弹幕内容，是proto的二进制格式
+        """请求弹幕内容，是proto的二进制格式"""
         resp = requests.get(url=url, headers=self.head)
         danmu_content = resp.content
         return danmu_content
 
     def jiexi_danmu_content(self,danmu_content):
+        """解析弹幕内容"""
         jiexi = dm_pb2.DmSegMobileReply()
         jiexi.ParseFromString(danmu_content)
         print('2026-6-17',jiexi.elems)
@@ -527,9 +534,9 @@ class BiliCrawler:
 
         return os.path.join(base_path, relative_path)
 
-    #返回合集列表
-    def get_series_urls(self, str_text,url):
 
+    def get_series_urls(self, str_text,url):
+        """返回合集列表"""
         match1 = re.search(r'<div class="amt" data-v-dac4fbd2>（(\d+)/(\d+)）</div>', str_text)
         match2 = re.search(r'<div class="amt" data-v-625117f2>（(\d+)/(\d+)）</div>', str_text)
 
@@ -553,11 +560,12 @@ class BiliCrawler:
 
         return url_list
 
-    #指定列表中哪些url需要
+
     def zhiding_heji_qujian_urls(self,url_list,zhiding_str):
         """
         根据范围字符串获取对应的URL列表
         支持格式：'1-3', '1,3,5', '1-3,5,7-9'
+        用于指定合集下载选择
         """
         urls = []
 
@@ -605,7 +613,7 @@ class BiliCrawler:
 
     def get_video_1080_url(self, str_text):
         """
-        从文本中提取视频URL
+        从文本中提取视频1080pURL
         """
         l = []  # 存储所有找到的URL
 
@@ -652,6 +660,9 @@ class BiliCrawler:
             return None
 
     def get_video_720_url(self, str_text):
+        """
+        从文本中提取视频720pURL
+        """
         l = []  # 存储所有找到的URL
 
         # 第一次尝试：使用baseUrl（驼峰命名）
@@ -698,7 +709,7 @@ class BiliCrawler:
 
     def get_video_480_url(self, str_text):
         """
-        从文本中提取视频URL
+        从文本中提取视频480pURL
         """
         l = []  # 存储所有找到的URL
 
@@ -745,7 +756,9 @@ class BiliCrawler:
             return None
 
     def get_video_360_url(self, str_text):
-        print('视频进来了')
+        """
+        从文本中提取视频360pURL
+        """
         l = []  # 存储所有找到的URL
 
         # 第一次尝试：使用baseUrl（驼峰命名）
@@ -791,6 +804,9 @@ class BiliCrawler:
             return None
 
     def get_audio_url(self,str_text):
+        """
+        从文本中提取音频URL，可获取三种音频url，如果都获取不到返回None
+        """
         print('音频进来了')
         """
         按优先级获取音频URL：30280 > 30232 > 30216
@@ -819,6 +835,7 @@ class BiliCrawler:
         return None
 
     def download_file(self, url, save_path):
+        """下载"""
         resp = requests.get(url, headers=self.head, stream=True)
 
         total_size = int(resp.headers.get('content-length', 0))
@@ -832,6 +849,7 @@ class BiliCrawler:
                     yield downloaded, total_size
 
     def merge_video_audio(self, video_path, audio_path, output_path):
+        """合并音频和视频"""
         ffmpeg_path = self.resource_path("./ffmpeg.exe")
 
         # 清理非法字符
@@ -858,8 +876,8 @@ class BiliCrawler:
             return 1
 
 
-##工作线程类
 class CrawlerThread(QThread):
+    """工作线程类,实际执行任务的地方"""
     progress_updated = pyqtSignal(int, int)  # 进度更新信号：当前值和最大值
     status_updated = pyqtSignal(str, str)  # 状态更新信号：发送状态文字和颜色
     result_ready = pyqtSignal(dict)  # 爬取结果
@@ -878,30 +896,28 @@ class CrawlerThread(QThread):
         self.series_range = series_range# 新增：存储用户输入合集的范围
         self.download_danmu = download_danmu  # 是否下载弹幕
         self.baoliu_yinshiping = baoliu_yinshiping  # 是否保留音视频
-        self.video_path = None
-        self.audio_path = None
+        #self.video_path = None
+        #self.audio_path = None
 
     def run(self):
+        """判断属于哪种下载类型"""
         try:
-            #单集下载
             if self.download_series == 1:
-                self.download_single_video()
+                self.download_single_video()#单集下载
             elif self.download_series == 2:
-                self.download_series_videos()
+                self.download_series_videos()#合集下载
             elif self.download_series == 3:
-                self.download_series_zhiding_videos()
+                self.download_series_zhiding_videos()#指定合集下载
             elif self.download_series == 4:
-                self.download_shouchangye_videos()
+                self.download_shouchangye_videos()#收藏夹下载
             else:
                 raise ValueError
 
         except Exception as e:
             self.status_updated.emit(f"发生错误: {str(e)}", "#e06c75")
 
-    #单集下载
     def download_single_video(self):
-        print('我是单集下载***********************')
-        """下载单个视频（使用新进度逻辑）"""
+        """下载单个视频"""
         start_time = time.time()
 
         def update_status(stage):
@@ -1100,10 +1116,9 @@ class CrawlerThread(QThread):
 
         except Exception as e:
             self.status_updated.emit(f"⚠️ 错误: {str(e)}", "#e06c75")
-    #合集下载
+
     def download_series_videos(self):
-        print('我是合集下载***********************')
-        """下载合集所有视频（平滑进度版）"""
+        """下载合集所有视频"""
         self.status_updated.emit("正在获取合集信息...", "#61dafb")
         # 初始化计时器和总数
         start_time = time.time()
@@ -1241,10 +1256,8 @@ class CrawlerThread(QThread):
         time.sleep(0.3)
         self.merge_complete.emit(series_dir)
 
-    # 指定合集下载
     def download_series_zhiding_videos(self):
-        print('我是合集下载***********************')
-        """下载合集所有视频（平滑进度版）"""
+        """指定合集下载，和合集下载一致，只是增加了获取选项"""
         self.status_updated.emit("正在获取合集信息...", "#61dafb")
         # 初始化计时器和总数
         start_time = time.time()
@@ -1387,11 +1400,8 @@ class CrawlerThread(QThread):
         time.sleep(0.3)
         self.merge_complete.emit(series_dir)
 
-
-    #收藏夹下载
     def download_shouchangye_videos(self):
-        print('呵呵呵呵')
-        # print(self.url)
+        """收藏夹下载"""
         #这个函数用于配合while循环替换pn=数字，这个数字代表收藏页的页面
         def set_pn_param(url, pn_value):
             """替换或添加 pn 参数"""
@@ -1550,9 +1560,9 @@ class CrawlerThread(QThread):
         time.sleep(0.3)
         self.merge_complete.emit(series_dir)
 
-#显示关于对话框
+
 class AboutDialog(QDialog):
-    """关于对话框"""
+    """ ‘关于’弹框，pyqt6界面中关于的显示内容"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1662,16 +1672,17 @@ class AboutDialog(QDialog):
 
     def open_github(self):
         """打开GitHub链接"""
-        url = "https://github.com/your-username/BiliEasy"  # 替换为你的GitHub链接
+        url = "https://github.com/your-username/BiliEasy"
         QDesktopServices.openUrl(QUrl(url))
 
     def open_bilibili(self):
         """打开B站链接"""
-        url = "https://www.bilibili.com/video/BV1BucBz9EPQ/?spm_id_from=333.1387.homepage.video_card.click&vd_source=726e4efb47a201228fe295f8e1d6e5c2"  # 替换为你的B站视频链接
+        url = "https://www.bilibili.com/video/BV1BucBz9EPQ/?spm_id_from=333.1387.homepage.video_card.click&vd_source=726e4efb47a201228fe295f8e1d6e5c2"
         QDesktopServices.openUrl(QUrl(url))
 
-# 主界面类
+
 class BiliCrawlerGUI(QMainWindow):
+    """主界面类,pyqt6界面框，样式，各种显示方法在此类中"""
     def __init__(self):
         super().__init__()
         self.last_dir = os.path.expanduser("~")  # 初始化默认路径
@@ -1705,6 +1716,7 @@ class BiliCrawlerGUI(QMainWindow):
             print(f"加载图标失败: {e}")
 
     def init_ui(self):
+        """用于初始化ui界面"""
         main_widget = QWidget()
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
