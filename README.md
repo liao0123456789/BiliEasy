@@ -83,3 +83,12 @@ https://www.bilibili.com/video/BV1eejE6SEPx/?spm_id_from=333.1387.homepage.video
 pip install -r requirements.txt
 ```
 **第四步：运行(使用 PyCharm / VSCode)直接运行main.py文件即可**
+
+
+## 📱 手机遥控版（社区贡献）
+
+感谢 [@Aster145](https://github.com/Aster145) 为本项目增加了 Android 手机遥控功能，当前版本可用。
+
+功能包括：手机可通过系统分享菜单把视频发送到同一局域网内的电脑，电脑自动排队、下载并合并音视频。
+
+👉 使用地址：https://github.com/Aster145/BiliEasy
