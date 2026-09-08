@@ -636,12 +636,13 @@ class BiliCrawler:
 
     #返回合集列表
     def get_series_urls(self, str_text,url):
-
+        #print('url:::',url)
         match1 = re.search(r'<div class="amt" data-v-dac4fbd2>（(\d+)/(\d+)）</div>', str_text)
         match2 = re.search(r'<div class="amt" data-v-625117f2>（(\d+)/(\d+)）</div>', str_text)
+        match3 = re.search(r'<div class="amt" data-v-687ba2be>（(\d+)/(\d+)）</div>', str_text)
 
         # 优先取 match1，没有则取 match2
-        match = match1 or match2
+        match = match1 or match2 or match3
 
         if not match:
             return None
@@ -1085,6 +1086,9 @@ class CrawlerThread(QThread):
                 self.status_updated.emit("获取视频/音频链接失败", "#e06c75")
                 return
 
+            #处理标题中特殊字符
+            dange_shiping_biaoti = self.crawler.sanitize_title(dange_shiping_biaoti)
+            print(dange_shiping_biaoti)
             self.result_message.emit('下载视频中...')
             # 视频下载 (0%-40%)
             video_path = os.path.join(self.save_dir, f"纯视频_{dange_shiping_biaoti}.mp4")
@@ -1102,9 +1106,7 @@ class CrawlerThread(QThread):
             self.result_message.emit('合并文件中...')
             # --- 阶段3：合并文件 ---
             update_status("merge")
-            #处理标题中特殊字符
-            dange_shiping_biaoti = self.crawler.sanitize_title(dange_shiping_biaoti)
-            print(dange_shiping_biaoti)
+
             # 合并处理 (80%-100%)
             output_path = os.path.join(self.save_dir, f"{dange_shiping_biaoti}.mp4")
             # 模拟合并进度
@@ -1740,8 +1742,11 @@ class CrawlerThread(QThread):
                     total_steps = total_videos * 3  # 每个视频有3个阶段
                     current_step = 0
 
+                    qiantao_hejibiaoti = "合集_" + qiantao_heji_title+'_'+str(int(time.time()))
+                    # 处理标题中特殊字符
+                    qiantao_hejibiaoti = self.crawler.sanitize_title(qiantao_hejibiaoti)
                     # 创建合集文件夹
-                    series_dir = os.path.join(self.save_dir, "合集_" + qiantao_heji_title+'_'+str(int(time.time())))
+                    series_dir = os.path.join(self.save_dir, qiantao_hejibiaoti)
                     os.makedirs(series_dir, exist_ok=True)
 
                     # 嵌套合集下的视频标题
@@ -1891,7 +1896,7 @@ class AboutDialog(QDialog):
 
         # 描述
         desc_label = QLabel(
-            "版本: v1.0.24\n"
+            "版本: v1.0.25\n"
             "B站视频下载工具\n"
             "基于 PyQt6 开发\n"
             "欢迎通过以下链接了解更多："
@@ -2362,7 +2367,7 @@ class BiliCrawlerGUI(QMainWindow):
         bottom_layout.addStretch()
 
         # 底部信息 - 居中
-        footer_label = QLabel("BiliEasy v1.0.24 | 欢迎学习交流 | 反馈/建议：QQ群 580376200 | qq:2571073922")
+        footer_label = QLabel("BiliEasy v1.0.25 | 欢迎学习交流 | 反馈/建议：QQ群 580376200 | qq:2571073922")
         footer_label.setStyleSheet("""
             color: #5c6370; 
             font-size: 13px;
