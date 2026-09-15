@@ -3,6 +3,9 @@
 **一个免费、开源的 B站视频下载工具，让你轻松保存喜爱的视频。**
 
 ---
+<img width="1103" height="654" alt="image" src="https://github.com/user-attachments/assets/7d4f57c6-a378-4fe4-90bb-63cf67b67482" />
+
+
 
 ## ✨ 功能亮点
 
