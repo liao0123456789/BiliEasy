@@ -1,4 +1,5 @@
-<img width="1182" height="812" alt="image" src="https://github.com/user-attachments/assets/d47a1110-595c-438a-ad2e-3a99cee55a82" /># BiliEasy - B站bilibili视频下载工具
+<img width="1182" height="812" alt="image" src="https://github.com/user-attachments/assets/108a4bcc-06fa-48d2-aa25-c21ad03b997c" />
+# BiliEasy - B站bilibili视频下载工具
 
 **一个免费、开源的 B站视频下载工具，让你轻松保存喜爱的视频。**
 
