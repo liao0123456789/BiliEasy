@@ -1826,102 +1826,95 @@ class CrawlerThread(QThread):
         else:
             self.status_updated.emit("未找到任何嵌套合集", "#e06c75")
 
-
-#显示关于对话框
 class AboutDialog(QDialog):
     """关于对话框"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("关于 BiliEasy")
-        self.setFixedSize(420, 280)
+        self.setFixedSize(440, 320)
         self.setModal(True)
-
-        # 设置对话框的默认字体为微软雅黑（简体风格）
         self.setFont(QFont("Microsoft YaHei", 9))
 
         self.setStyleSheet("""
             QDialog {
-                background-color: #2c313c;
-                border-radius: 10px;
+                background-color: #ffffff;
+                border: 1px solid #e3e6ec;
+                border-radius: 12px;
             }
             QLabel#title_label {
-                color: #61dafb;
-                font-size: 20px;
+                color: #fb7299;
+                font-size: 22px;
                 font-weight: bold;
             }
             QLabel#desc_label {
-                color: #abb2bf;
+                color: #6b7280;
                 font-size: 13px;
+                line-height: 20px;
             }
             QPushButton {
                 border: none;
-                padding: 10px 25px;
-                border-radius: 5px;
+                padding: 10px 24px;
+                border-radius: 6px;
                 font-size: 13px;
                 font-weight: bold;
             }
             QPushButton#github_btn {
-                background-color: #24292e;
-                color: white;
+                background-color: #f0f1f4;
+                color: #2c3038;
             }
             QPushButton#github_btn:hover {
-                background-color: #1a1d21;
+                background-color: #e3e6ec;
             }
             QPushButton#bilibili_btn {
                 background-color: #fb7299;
                 color: white;
             }
             QPushButton#bilibili_btn:hover {
-                background-color: #e85d85;
+                background-color: #ff8fb0;
             }
             QPushButton#close_btn {
-                background-color: #3e4451;
-                color: #abb2bf;
+                background-color: #f0f1f4;
+                color: #6b7280;
             }
             QPushButton#close_btn:hover {
-                background-color: #4b5262;
+                background-color: #e3e6ec;
+                color: #2c3038;
             }
         """)
 
         layout = QVBoxLayout()
-        layout.setSpacing(15)
-        layout.setContentsMargins(30, 25, 30, 25)
+        layout.setSpacing(14)
+        layout.setContentsMargins(32, 28, 32, 28)
 
-        # 标题
         title_label = QLabel("⚡ BiliEasy")
         title_label.setObjectName("title_label")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
-        # 描述
         desc_label = QLabel(
-            "版本: v1.0.25\n"
+            "版本: v2.0.25\n"
             "B站视频下载工具\n"
-            "基于 PyQt6 开发\n"
+            "PyQt6 + 爬虫 + Protobuf 弹幕解析\n"
             "欢迎通过以下链接了解更多："
         )
         desc_label.setObjectName("desc_label")
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(desc_label)
 
-        # 分隔线
         line = QFrame()
         line.setFrameShape(QFrame.Shape.HLine)
-        line.setStyleSheet("background-color: #3e4451; max-height: 1px;")
+        line.setStyleSheet("background-color: #e3e6ec; max-height: 1px; border: none;")
         layout.addWidget(line)
 
-        # 按钮区域
         btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(20)
+        btn_layout.setSpacing(16)
 
-        # GitHub 按钮
-        self.github_btn = QPushButton(" GitHub")
+        self.github_btn = QPushButton("GitHub")
         self.github_btn.setObjectName("github_btn")
         self.github_btn.clicked.connect(self.open_github)
         btn_layout.addWidget(self.github_btn)
 
-        # B站 按钮
         self.bilibili_btn = QPushButton("📺 B站视频")
         self.bilibili_btn.setObjectName("bilibili_btn")
         self.bilibili_btn.clicked.connect(self.open_bilibili)
@@ -1929,7 +1922,6 @@ class AboutDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
-        # 关闭按钮
         close_btn = QPushButton("关闭")
         close_btn.setObjectName("close_btn")
         close_btn.clicked.connect(self.reject)
@@ -1938,532 +1930,684 @@ class AboutDialog(QDialog):
         self.setLayout(layout)
 
     def open_github(self):
-        """打开GitHub链接"""
-        url = "https://github.com/liao0123456789/BiliEasy"  # 替换为你的GitHub链接
-        QDesktopServices.openUrl(QUrl(url))
+        QDesktopServices.openUrl(QUrl("https://github.com/liao0123456789/BiliEasy"))
 
     def open_bilibili(self):
-        """打开B站链接"""
-        url = "https://www.bilibili.com/video/BV1BucBz9EPQ/?spm_id_from=333.1387.homepage.video_card.click&vd_source=726e4efb47a201228fe295f8e1d6e5c2"  # 替换为你的B站视频链接
-        QDesktopServices.openUrl(QUrl(url))
+        QDesktopServices.openUrl(QUrl(
+            "https://www.bilibili.com/video/BV1BucBz9EPQ/?spm_id_from=333.1387.homepage.video_card.click&vd_source=726e4efb47a201228fe295f8e1d6e5c2"
+        ))
 
-# 主界面类
+
+class SidebarButton(QPushButton):
+    """侧边栏导航按钮"""
+
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self.setCheckable(True)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFixedHeight(44)
+        self.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #6b7280;
+                border: none;
+                border-radius: 8px;
+                text-align: left;
+                padding-left: 16px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #e8eaef;
+                color: #2c3038;
+            }
+            QPushButton:checked {
+                background-color: #fdeef3;
+                color: #fb7299;
+                border-left: 3px solid #fb7299;
+            }
+        """)
+
+
 class BiliCrawlerGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.last_dir = os.path.expanduser("~")  # 初始化默认路径
+        self.last_dir = os.path.expanduser("~")
         self.settings_file = "./bili_crawler_settings.json"
 
-        # 先加载设置但不立即应用
         self.saved_settings = self.load_settings()
 
-        # 创建主控件和布局
         self.init_ui()
-        #应用之前加载的设置
         self.apply_settings()
 
-        self.crawler = BiliCrawler()  # 初始时不带Cookie
+        self.crawler = BiliCrawler()
         self.setWindowTitle("BiliEasy")
-        self.setGeometry(300, 300, 1100, 450)
-        self.setMinimumSize(600, 620)
-        # 设置应用样式
-        self.set_dark_theme()
+        self.setGeometry(260, 180, 1180, 780)
+        self.setMinimumSize(960, 680)
+        self.set_light_theme()
 
-        # 设置窗口图标
         try:
-            # 如果是打包后的环境，使用 sys._MEIPASS 获取资源路径
             if getattr(sys, 'frozen', False):
                 base_path = sys._MEIPASS
-            else:  # 否则使用当前目录
+            else:
                 base_path = os.path.dirname(os.path.abspath(__file__))
             icon_path = os.path.join(base_path, "bili.ico")
             self.setWindowIcon(QIcon(icon_path))
         except Exception as e:
             print(f"加载图标失败: {e}")
 
+    # ---------- 样式工具 ----------
+    def _card_style(self):
+        return """
+            QFrame#card {
+                background-color: #ffffff;
+                border: 1px solid #e6e8ee;
+                border-radius: 12px;
+            }
+        """
+
+    def _combo_style(self):
+        return """
+            QComboBox {
+                background-color: #f7f8fa;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 8px 12px;
+                min-width: 110px;
+                font-size: 13px;
+            }
+            QComboBox:hover {
+                border: 1px solid #cfd4dd;
+            }
+            QComboBox:focus {
+                border: 1px solid #fb7299;
+                background-color: #ffffff;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 24px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 5px solid #6b7280;
+                margin-right: 8px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                selection-background-color: #fdeef3;
+                selection-color: #fb7299;
+                outline: none;
+            }
+        """
+
+    def _line_edit_style(self):
+        return """
+            QLineEdit {
+                background-color: #f7f8fa;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 13px;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+            QLineEdit:focus {
+                border: 1px solid #fb7299;
+                background-color: #ffffff;
+            }
+            QLineEdit:hover {
+                border: 1px solid #cfd4dd;
+            }
+        """
+
+    def _label_style(self):
+        return "color: #6b7280; font-size: 13px; font-weight: bold;"
+
+    def _apply_shadow(self, widget):
+        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+        shadow = QGraphicsDropShadowEffect(widget)
+        shadow.setBlurRadius(16)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 18))
+        widget.setGraphicsEffect(shadow)
+
+    def _make_card(self, title=None, shadow=True):
+        """创建一个卡片容器，返回 (card_frame, content_layout)"""
+        card = QFrame()
+        card.setObjectName("card")
+        card.setStyleSheet(self._card_style())
+
+        if shadow:
+            self._apply_shadow(card)
+
+        v = QVBoxLayout(card)
+        v.setContentsMargins(18, 16, 18, 18)
+        v.setSpacing(12)
+
+        if title:
+            title_row = QHBoxLayout()
+            title_row.setSpacing(8)
+
+            dot = QLabel("●")
+            dot.setStyleSheet("color: #fb7299; font-size: 10px;")
+            title_row.addWidget(dot)
+
+            title_label = QLabel(title)
+            title_label.setStyleSheet("""
+                color: #2c3038;
+                font-size: 13px;
+                font-weight: bold;
+                padding-bottom: 1px;
+            """)
+            title_row.addWidget(title_label)
+            title_row.addStretch()
+
+            v.addLayout(title_row)
+
+        return card, v
+
+    # ---------- UI 构建 ----------
     def init_ui(self):
         main_widget = QWidget()
-        main_layout = QVBoxLayout()
-        main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # 全局字体设置
-        default_font = QFont("Microsoft JhengHei", 12)
-        default_font.setWeight(QFont.Weight.Bold)
-        QApplication.setFont(default_font)
+        root = QHBoxLayout(main_widget)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        # ==================== 标题 ====================
-        title_label = QLabel("BiliEasy")
-        title_label.setFont(QFont("Microsoft JhengHei", 16, QFont.Weight.Bold))
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("""
-            color: #61dafb; 
-            margin-bottom: 20px;
-            padding: 5px;
-            border-bottom: 2px solid #3e4451;
-        """)
-
-        # ==================== URL输入区域 ====================
-        url_layout = QHBoxLayout()
-        url_label = QLabel("视频链接:")
-        url_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("请输入B站视频链接...")
-        self.url_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:focus {
-                border: 1px solid #61dafb;
-            }
-            QLineEdit:hover {
-                border: 1px solid #4b5262;
+        # ============ 左侧边栏 ============
+        sidebar = QFrame()
+        sidebar.setFixedWidth(220)
+        sidebar.setStyleSheet("""
+            QFrame {
+                background-color: #f0f1f4;
+                border-right: 1px solid #e3e6ec;
             }
         """)
-        self.url_input.setMinimumHeight(40)
-        url_layout.addWidget(url_label)
-        url_layout.addWidget(self.url_input)
+        side_layout = QVBoxLayout(sidebar)
+        side_layout.setContentsMargins(16, 22, 16, 18)
+        side_layout.setSpacing(10)
 
+        # ---- 品牌区：Logo 底 + 品牌名 ----
+        brand_row = QHBoxLayout()
+        brand_row.setSpacing(10)
 
-        fenbian_mode_shuiping_kongjian = QHBoxLayout()
-        fenbian_mode_shuiping_kongjian.setSpacing(30)
-        # ==================== 分辨率选择 ====================
-        resolution_layout = QHBoxLayout()# 创建水平布局容器
-        resolution_label = QLabel("分辨率:")#创建标签（左边的文字）
-        resolution_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.resolution_combo = QComboBox()# 创建输入控件（右边的下拉框）
-        self.resolution_combo.addItems(['1080p', '720p','480p','360p'])
-        self.resolution_combo.setCurrentIndex(0)
-        self.resolution_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                min-width: 100px;
-            }
-            QComboBox:hover {
-                border: 1px solid #4b5262;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2c313c;
-                color: #d7dae0;
-                selection-background-color: #3e4451;
-                outline: none;
-            }
-        """)
-        self.resolution_combo.setMinimumWidth(120)  # 直接设置最小宽度
-        resolution_layout.addWidget(resolution_label)
-        resolution_layout.addWidget(self.resolution_combo)
-
-        # ==================== 下载模式 ====================
-        mode_layout = QHBoxLayout()
-        mode_label = QLabel("下载模式:")
-        mode_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.download_mode = QComboBox()
-        self.download_mode.addItems(["单集下载", "合集下载","合集指定下载","收藏夹下载","嵌套合集下载"])
-        self.download_mode.setStyleSheet("""
-            QComboBox {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                min-width: 120px;
-            }
-            QComboBox:hover {
-                border: 1px solid #4b5262;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2c313c;
-                color: #d7dae0;
-                selection-background-color: #3e4451;
-                outline: none;
-            }
-        """)
-        self.download_mode.setMinimumWidth(140)
-        mode_layout.addWidget(mode_label)
-        mode_layout.addWidget(self.download_mode)
-
-        #==================== 下载弹幕 ====================
-        danmu_layout = QHBoxLayout()
-        danmu_label = QLabel("下载弹幕:")
-        danmu_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.danmu_mode = QComboBox()
-        self.danmu_mode.addItems(["否","仅下载弹幕", "烧录弹幕至视频"])
-        self.danmu_mode.setStyleSheet("""
-            QComboBox {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                min-width: 120px;
-            }
-            QComboBox:hover {
-                border: 1px solid #4b5262;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2c313c;
-                color: #d7dae0;
-                selection-background-color: #3e4451;
-                outline: none;
-            }
-        """)
-        self.danmu_mode.setMinimumWidth(100)
-        danmu_layout.addWidget(danmu_label)
-        danmu_layout.addWidget(self.danmu_mode)
-
-        #=====================保留音视频=====================
-        yinshiping_layout = QHBoxLayout()
-        yinshiping_label = QLabel("保留音视频:")
-        yinshiping_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.yinshiping_mode = QComboBox()
-        self.yinshiping_mode.addItems(["否", "是"])
-        self.yinshiping_mode.setStyleSheet("""
-            QComboBox {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                min-width: 120px;
-            }
-            QComboBox:hover {
-                border: 1px solid #4b5262;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2c313c;
-                color: #d7dae0;
-                selection-background-color: #3e4451;
-                outline: none;
-            }
-        """)
-        self.yinshiping_mode.setMinimumWidth(100)
-        yinshiping_layout.addWidget(yinshiping_label)
-        yinshiping_layout.addWidget(self.yinshiping_mode)
-
-        #将分辨率，下载模式，下载弹幕都添加到一个大的水平容器中
-        fenbian_mode_shuiping_kongjian.addLayout(resolution_layout)
-        fenbian_mode_shuiping_kongjian.addLayout(mode_layout)
-        fenbian_mode_shuiping_kongjian.addLayout(danmu_layout)
-        fenbian_mode_shuiping_kongjian.addLayout(yinshiping_layout)
-
-        # ==================== Cookie输入区域 ====================
-        cookie_layout = QHBoxLayout()
-        cookie_label = QLabel("B站Cookie:")
-        cookie_label.setStyleSheet("color: #9400D3; min-width: 80px;")
-        self.cookie_input = QLineEdit()
-        self.cookie_input.setPlaceholderText("请输入您的B站Cookie")
-        self.cookie_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:focus {
-                border: 1px solid #61dafb;
-            }
-            QLineEdit:hover {
-                border: 1px solid #4b5262;
-            }
-        """)
-        #当用户输入时自动保存
-        self.cookie_input.textChanged.connect(self.save_settings)
-        help_btn = QPushButton("?")
-        help_btn.setStyleSheet("""
-            QPushButton {
-                background: #3e4451;
-                color: #d7dae0;
-                border-radius: 12px;
+        logo = QLabel("⚡")
+        logo.setFixedSize(36, 36)
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo.setStyleSheet("""
+            QLabel {
+                background-color: #fb7299;
+                color: #ffffff;
+                border-radius: 10px;
+                font-size: 18px;
                 font-weight: bold;
-                min-width: 24px;
-                max-width: 24px;
-                min-height: 24px;
-                max-height: 24px;
+            }
+        """)
+        brand_row.addWidget(logo)
+
+        brand_text = QVBoxLayout()
+        brand_text.setSpacing(0)
+        brand_name = QLabel("BiliEasy")
+        brand_name.setStyleSheet("""
+            color: #2c3038;
+            font-size: 16px;
+            font-weight: bold;
+        """)
+        brand_sub = QLabel("B站视频下载工具")
+        brand_sub.setStyleSheet("color: #9aa0ab; font-size: 10px;")
+        brand_text.addWidget(brand_name)
+        brand_text.addWidget(brand_sub)
+        brand_row.addLayout(brand_text)
+        brand_row.addStretch()
+
+        side_layout.addLayout(brand_row)
+        side_layout.addSpacing(12)
+
+        # ---- 导航按钮（互斥） ----
+        from PyQt6.QtWidgets import QButtonGroup
+
+        self.nav_group = QButtonGroup(self)
+        self.nav_group.setExclusive(True)
+
+        self.nav_download = SidebarButton("  📥   下载")
+        self.nav_settings = SidebarButton("  ⚙️   设置")
+        self.nav_about = SidebarButton("  ℹ️   关于")
+
+        self.nav_group.addButton(self.nav_download, 0)
+        self.nav_group.addButton(self.nav_settings, 1)
+        self.nav_group.addButton(self.nav_about, 2)
+
+        self.nav_download.setChecked(True)
+
+        side_layout.addWidget(self.nav_download)
+        side_layout.addWidget(self.nav_settings)
+        side_layout.addWidget(self.nav_about)
+
+        self.nav_about.clicked.connect(self.show_about_dialog)
+
+        side_layout.addStretch()
+
+        divider = QFrame()
+        divider.setFrameShape(QFrame.Shape.HLine)
+        divider.setStyleSheet("background-color: #e3e6ec; max-height: 1px; border: none;")
+        side_layout.addWidget(divider)
+
+        # ---- 底部信息（可复制） ----
+        info_box = QVBoxLayout()
+        info_box.setSpacing(4)
+
+        version_edit = QLineEdit("v2.0.25")
+        version_edit.setReadOnly(True)
+        version_edit.setCursorPosition(0)
+        version_edit.setStyleSheet("""
+            QLineEdit {
+                background: transparent;
+                border: none;
+                color: #9aa0ab;
+                font-size: 11px;
+                padding: 0;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+        """)
+        info_box.addWidget(version_edit)
+
+        group_edit = QLineEdit("QQ群 580376200")
+        group_edit.setReadOnly(True)
+        group_edit.setCursorPosition(0)
+        group_edit.setStyleSheet("""
+            QLineEdit {
+                background: transparent;
+                border: none;
+                color: #9aa0ab;
+                font-size: 11px;
+                padding: 0;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+        """)
+        info_box.addWidget(group_edit)
+
+        qq_edit = QLineEdit("qq: 2571073922")
+        qq_edit.setReadOnly(True)
+        qq_edit.setCursorPosition(0)
+        qq_edit.setStyleSheet("""
+            QLineEdit {
+                background: transparent;
+                border: none;
+                color: #9aa0ab;
+                font-size: 11px;
+                padding: 0;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+        """)
+        info_box.addWidget(qq_edit)
+
+        side_layout.addLayout(info_box)
+
+        root.addWidget(sidebar)
+
+        # ============ 右侧主区域 ============
+        content = QWidget()
+        content.setStyleSheet("background-color: #f2f3f7;")
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(26, 24, 26, 22)
+        content_layout.setSpacing(18)
+
+        header = QLabel("下载任务")
+        header.setStyleSheet("""
+            color: #2c3038;
+            font-size: 18px;
+            font-weight: bold;
+        """)
+        content_layout.addWidget(header)
+
+        # ---- URL 卡片 ----
+        url_card, url_layout = self._make_card()
+        url_row = QHBoxLayout()
+        url_row.setSpacing(12)
+
+        self.url_input = QLineEdit()
+        self.url_input.setPlaceholderText("粘贴 B 站视频链接，例如 https://www.bilibili.com/video/BV...")
+        self.url_input.setStyleSheet(self._line_edit_style())
+        self.url_input.setMinimumHeight(44)
+        url_row.addWidget(self.url_input, 1)
+
+        self.crawl_btn = QPushButton("开始下载")
+        self.crawl_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.crawl_btn.setMinimumHeight(44)
+        self.crawl_btn.setMinimumWidth(120)
+        self.crawl_btn.setFont(QFont("Microsoft YaHei", 11, QFont.Weight.Bold))
+        self.crawl_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #fb7299;
+                color: #ffffff;
+                border: none;
+                border-radius: 8px;
+                padding: 0 24px;
+                font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background: #61dafb;
-                color: #282c34;
+                background-color: #ff8fb0;
+            }
+            QPushButton:pressed {
+                background-color: #e05f85;
+            }
+            QPushButton:disabled {
+                background-color: #e3e6ec;
+                color: #9aa0ab;
+            }
+        """)
+        self.crawl_btn.clicked.connect(self.start_crawling)
+        url_row.addWidget(self.crawl_btn)
+
+        url_layout.addLayout(url_row)
+        content_layout.addWidget(url_card)
+
+        # ---- 配置卡片 ----
+        config_card, config_layout = self._make_card("下载配置")
+        config_row = QHBoxLayout()
+        config_row.setSpacing(22)
+
+        def make_config_item(label_text, combo):
+            box = QVBoxLayout()
+            box.setSpacing(6)
+            lab = QLabel(label_text)
+            lab.setStyleSheet(self._label_style())
+            combo.setStyleSheet(self._combo_style())
+            combo.setMinimumHeight(38)
+            box.addWidget(lab)
+            box.addWidget(combo)
+            return box
+
+        self.resolution_combo = QComboBox()
+        self.resolution_combo.addItems(['1080p', '720p', '480p', '360p'])
+        self.resolution_combo.setCurrentIndex(0)
+
+        self.download_mode = QComboBox()
+        self.download_mode.addItems(["单集下载", "合集下载", "合集指定下载", "收藏夹下载", "嵌套合集下载"])
+
+        self.danmu_mode = QComboBox()
+        self.danmu_mode.addItems(["否", "仅下载弹幕", "烧录弹幕至视频"])
+
+        self.yinshiping_mode = QComboBox()
+        self.yinshiping_mode.addItems(["否", "是"])
+
+        config_row.addLayout(make_config_item("分辨率", self.resolution_combo))
+        config_row.addLayout(make_config_item("下载模式", self.download_mode))
+        config_row.addLayout(make_config_item("弹幕", self.danmu_mode))
+        config_row.addLayout(make_config_item("保留音视频", self.yinshiping_mode))
+        config_row.addStretch()
+        config_layout.addLayout(config_row)
+        content_layout.addWidget(config_card)
+
+        # ---- Cookie + 路径卡片 ----
+        io_card, io_layout = self._make_card()
+        io_layout.setSpacing(14)
+
+        cookie_row = QHBoxLayout()
+        cookie_row.setSpacing(12)
+        cookie_label = QLabel("Cookie")
+        cookie_label.setStyleSheet(self._label_style())
+        cookie_label.setFixedWidth(64)
+
+        self.cookie_input = QLineEdit()
+        self.cookie_input.setPlaceholderText("请输入您的 B 站 Cookie（部分清晰度需要登录）")
+        self.cookie_input.setStyleSheet(self._line_edit_style())
+        self.cookie_input.setMinimumHeight(42)
+        self.cookie_input.textChanged.connect(self.save_settings)
+        cookie_row.addWidget(cookie_label)
+        cookie_row.addWidget(self.cookie_input, 1)
+
+        help_btn = QPushButton("?")
+        help_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        help_btn.setFixedSize(30, 30)
+        help_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f0f1f4;
+                color: #6b7280;
+                border: none;
+                border-radius: 15px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #fb7299;
+                color: #ffffff;
             }
         """)
         help_btn.clicked.connect(self.show_cookie_help)
-        cookie_layout.addWidget(cookie_label)
-        cookie_layout.addWidget(self.cookie_input)
-        cookie_layout.addWidget(help_btn)
+        cookie_row.addWidget(help_btn)
+        io_layout.addLayout(cookie_row)
 
-        # ==================== 保存路径选择 ====================
-        path_layout = QHBoxLayout()
-        path_label = QLabel("保存路径:")
-        path_label.setStyleSheet("color: #9400D3; min-width: 80px;")
+        path_row = QHBoxLayout()
+        path_row.setSpacing(12)
+        path_label = QLabel("保存路径")
+        path_label.setStyleSheet(self._label_style())
+        path_label.setFixedWidth(64)
+
         self.path_input = QLineEdit()
         self.path_input.setText(self.last_dir)
-        self.path_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:hover {
-                border: 1px solid #4b5262;
-            }
-        """)
-        self.path_input.setMinimumHeight(40)
-        self.browse_btn = QPushButton("浏览...")
+        self.path_input.setStyleSheet(self._line_edit_style())
+        self.path_input.setMinimumHeight(42)
+        path_row.addWidget(path_label)
+        path_row.addWidget(self.path_input, 1)
+
+        self.browse_btn = QPushButton("浏览")
+        self.browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.browse_btn.setFixedHeight(42)
+        self.browse_btn.setMinimumWidth(80)
         self.browse_btn.setStyleSheet("""
             QPushButton {
-                background-color: #3e4451;
-                color: #d7dae0;
-                border-radius: 4px;
-                padding: 8px 12px;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #4b5262;
-            }
-            QPushButton:pressed {
-                background-color: #61dafb;
-                color: #282c34;
-            }
-        """)
-        self.browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.browse_btn.clicked.connect(self.browse_save_dir)
-        path_layout.addWidget(path_label)
-        path_layout.addWidget(self.path_input)
-        path_layout.addWidget(self.browse_btn)
-        # ==================== 爬取按钮 ====================
-        self.crawl_btn = QPushButton("开始爬取")
-        self.crawl_btn.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
-        self.crawl_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #61dafb;
-                color: #282c34;
-                border-radius: 4px;
-                padding: 12px;
-                margin: 15px 0;
-            }
-            QPushButton:hover {
-                background-color: #4ec1e0;
-            }
-            QPushButton:pressed {
-                background-color: #3aa8d0;
-            }
-            QPushButton:disabled {
-                background-color: #3e4451;
-                color: #5c6370;
-            }
-        """)
-        self.crawl_btn.setCursor(Qt.CursorShape.PointingHandCursor)#设置鼠标悬停时的光标样式为手型
-        self.crawl_btn.clicked.connect(self.start_crawling)
-        # ==================== 进度条 ====================
-        self.progress_bar = QProgressBar()#创建进程对象，就是进度条
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)#设置初始值为0%
-        self.progress_bar.setTextVisible(True)#显示进度文本（百分比或自定义文字）
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                background-color: #2c313c;
-                color: #abb2bf;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                height: 16px;
-                text-align: center;
-            }
-            QProgressBar::chunk {
-                background-color: #61dafb;
-                border-radius: 4px;
-            }
-        """)
-        self.progress_bar.setFormat("等待开始...")
-        self.progress_bar.hide()#初始化时隐藏，只有被show()调用才显示
-        # ==================== 状态标签 ====================
-        self.status_label = QLabel("准备就绪")
-        self.status_label.setStyleSheet("""
-            color: #abb2bf; 
-            margin-top: 10px;
-            padding: 8px;
-            background-color: #2c313c;
-            border-radius: 4px;
-            border: 1px solid #3e4451;
-        """)
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # ==================== 结果区域 ====================
-        result_layout = QVBoxLayout()
-        result_label = QLabel("爬取结果")
-        result_label.setFont(QFont("Microsoft YaHei", 12, QFont.Weight.Bold))
-        result_label.setStyleSheet("""
-            color: #61dafb;
-            margin-top: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #3e4451;
-        """)
-        # 改用QTextEdit以获得更好的文本显示
-        self.result_text = QTextEdit()
-        self.result_text.setReadOnly(True)
-        self.result_text.setPlaceholderText("等待开始...")
-        self.result_text.setStyleSheet("""
-            QTextEdit {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #3e4451;
-                border-radius: 4px;
-                padding: 10px;
-                font-size: 12px;
-            }
-        """)
-        self.result_text.setMinimumHeight(70)
-        self.result_text.setMaximumHeight(120)
-        result_layout.addWidget(result_label)
-        result_layout.addWidget(self.result_text)
-        # ==================== 添加到主布局 ====================
-        main_layout.addWidget(title_label)
-        main_layout.addLayout(url_layout)
-        # main_layout.addLayout(resolution_layout)
-        # main_layout.addLayout(mode_layout)
-        main_layout.addLayout(fenbian_mode_shuiping_kongjian)
-        main_layout.addLayout(cookie_layout)
-        main_layout.addLayout(path_layout)
-        main_layout.addWidget(self.crawl_btn)
-        main_layout.addWidget(self.progress_bar)
-        main_layout.addWidget(self.status_label)
-        main_layout.addLayout(result_layout)
-        main_layout.addStretch()
-        # ==================== 底部信息 ====================
-        # 先添加分割线（占满整个宽度）
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setStyleSheet("background-color: #3e4451; max-height: 1px;")
-        main_layout.addWidget(line)
-
-        # 底部布局：footer_label 居中，关于按钮在右下角
-        bottom_layout = QHBoxLayout()
-        bottom_layout.setContentsMargins(0, 10, 0, 5)
-
-        # 左侧空白（占位）
-        bottom_layout.addStretch()
-
-        # 底部信息 - 居中
-        footer_label = QLabel("BiliEasy v1.0.25 | 欢迎学习交流 | 反馈/建议：QQ群 580376200 | qq:2571073922")
-        footer_label.setStyleSheet("""
-            color: #5c6370; 
-            font-size: 13px;
-        """)
-        bottom_layout.addWidget(footer_label)
-
-        # 中间弹性空间（让footer_label居中，关于按钮靠右）
-        bottom_layout.addStretch()
-
-        # 关于按钮 - 靠右
-        self.about_btn = QPushButton("关于")
-        self.about_btn.setFixedSize(55, 25)
-        self.about_btn.setFont(QFont("Microsoft YaHei", 9))
-        self.about_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #61dafb;
-                border: 1px solid #61dafb;
-                border-radius: 3px;
-                font-size: 11px;
+                background-color: #f0f1f4;
+                color: #2c3038;
+                border: none;
+                border-radius: 8px;
+                padding: 0 16px;
+                font-size: 13px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #61dafb;
-                color: #282c34;
-                border-color: #4ec1e0;
+                background-color: #e3e6ec;
+            }
+            QPushButton:pressed {
+                background-color: #fb7299;
+                color: #ffffff;
             }
         """)
-        self.about_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.about_btn.clicked.connect(self.show_about_dialog)
-        bottom_layout.addWidget(self.about_btn)
+        self.browse_btn.clicked.connect(self.browse_save_dir)
+        path_row.addWidget(self.browse_btn)
+        io_layout.addLayout(path_row)
 
-        main_layout.addLayout(bottom_layout)
+        content_layout.addWidget(io_card)
 
+        # ---- 任务状态卡片 ----
+        status_card, status_layout = self._make_card("任务状态")
+
+        clear_row = QHBoxLayout()
+        clear_row.addStretch()
+        clear_btn = QPushButton("清空")
+        clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        clear_btn.setFixedSize(56, 26)
+        clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f0f1f4;
+                color: #6b7280;
+                border: none;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #fdeef3;
+                color: #fb7299;
+            }
+            QPushButton:pressed {
+                background-color: #fb7299;
+                color: #ffffff;
+            }
+        """)
+        clear_btn.clicked.connect(self.clear_log)
+        clear_row.addWidget(clear_btn)
+        status_layout.insertLayout(0, clear_row)
+
+        status_layout.setSpacing(12)
+
+        self.status_label = QLineEdit()
+        self.status_label.setReadOnly(True)
+        self.status_label.setText("准备就绪")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_label.setMinimumHeight(40)
+        self.status_label.setStyleSheet("""
+            QLineEdit {
+                color: #6b7280;
+                background-color: #f7f8fa;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 13px;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+            QLineEdit:focus {
+                border: 1px solid #e3e6ec;
+            }
+        """)
+        status_layout.addWidget(self.status_label)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("等待开始...")
+        self.progress_bar.setMinimumHeight(18)
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                background-color: #eef0f4;
+                color: #6b7280;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                height: 18px;
+                text-align: center;
+                font-size: 11px;
+            }
+            QProgressBar::chunk {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                                  stop:0 #fb7299, stop:1 #ff8fb0);
+                border-radius: 7px;
+            }
+        """)
+        self.progress_bar.hide()
+        status_layout.addWidget(self.progress_bar)
+
+        self.result_text = QTextEdit()
+        self.result_text.setReadOnly(True)
+        self.result_text.setPlaceholderText("下载日志会显示在这里...")
+        self.result_text.setMinimumHeight(140)
+        self.result_text.setStyleSheet("""
+            QTextEdit {
+                background-color: #f7f8fa;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 10px 12px;
+                font-size: 12px;
+                font-family: "Consolas", "Microsoft YaHei";
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }
+        """)
+        status_layout.addWidget(self.result_text)
+
+        content_layout.addWidget(status_card, 1)
+
+        root.addWidget(content, 1)
+
+    # ---------- 日志清空 ----------
+    def clear_log(self):
+        self.result_text.clear()
+
+    # ---------- 以下方法与原来保持一致 ----------
     def show_about_dialog(self):
-        """显示关于对话框"""
-        dialog = AboutDialog(self)  # 在这里使用 AboutDialog 类
+        dialog = AboutDialog(self)
         dialog.exec()
 
     def show_cookie_help(self):
-        """显示美观的帮助对话框"""
         dialog = QDialog(self)
         dialog.setWindowTitle("获取Cookie帮助")
-        dialog.setMinimumWidth(400)
+        dialog.setMinimumWidth(420)
+        dialog.setStyleSheet("""
+            QDialog { background-color: #ffffff; }
+            QLabel { color: #2c3038; font-size: 13px; }
+            QPushButton {
+                background-color: #f0f1f4;
+                color: #2c3038;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 20px;
+                font-size: 13px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #e3e6ec; }
+        """)
         layout = QVBoxLayout()
-        # 标题
-        title = QLabel("如何获取B站Cookie")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        # 步骤列表
+        title = QLabel("如何获取 B 站 Cookie")
+        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #fb7299;")
         steps = QLabel("""
         <ol>
-        <li>登录B站后按<b>F12</b>打开开发者工具</li>
-        <li>找到<b>网络(Network)</b>标签</li>
-        <li><b>点击浏览器</b>刷新或者按下<b>F5</b>，刷新B站页面</li>
-        <li>找到<b>DOC(文档)</b>选项下面的链接</li>
-        <li>打开链接，找到<b>请求头（Request Headers）</b></li>
-        <li>找到Cookie，复制对应的值</li>   
+        <li>登录 B 站后按 <b>F12</b> 打开开发者工具</li>
+        <li>找到 <b>网络(Network)</b> 标签</li>
+        <li>刷新 B 站页面（F5）</li>
+        <li>找到 <b>DOC(文档)</b> 选项下面的链接</li>
+        <li>打开链接，找到 <b>请求头(Request Headers)</b></li>
+        <li>找到 Cookie，复制对应的值</li>
         </ol>
         """)
         steps.setTextFormat(Qt.TextFormat.RichText)
-        # 警告信息
-        warning = QLabel("⚠️ Cookie是您的登录凭证，请勿泄露给他人！")
-        warning.setStyleSheet("color: red;")
-        # 确定按钮
+        warning = QLabel("⚠️ Cookie 是您的登录凭证，请勿泄露给他人！")
+        warning.setStyleSheet("color: #e05f85;")
         btn_ok = QPushButton("我明白了")
         btn_ok.clicked.connect(dialog.accept)
-        # 添加到布局
         layout.addWidget(title)
         layout.addWidget(steps)
         layout.addWidget(warning)
-        layout.addWidget(btn_ok)
+        layout.addWidget(btn_ok, alignment=Qt.AlignmentFlag.AlignCenter)
         dialog.setLayout(layout)
         dialog.exec()
 
-    def set_dark_theme(self):
-        """设置暗色主题样式"""
+    def set_light_theme(self):
         palette = QPalette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(40, 44, 52))
-        palette.setColor(QPalette.ColorRole.WindowText, QColor(171, 178, 191))
-        palette.setColor(QPalette.ColorRole.Base, QColor(35, 39, 46))
-        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(44, 49, 60))
-        palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(40, 44, 52))
-        palette.setColor(QPalette.ColorRole.ToolTipText, QColor(171, 178, 191))
-        palette.setColor(QPalette.ColorRole.Text, QColor(171, 178, 191))
-        palette.setColor(QPalette.ColorRole.Button, QColor(62, 68, 81))
-        palette.setColor(QPalette.ColorRole.ButtonText, QColor(171, 178, 191))
+        palette.setColor(QPalette.ColorRole.Window, QColor(242, 243, 247))
+        palette.setColor(QPalette.ColorRole.WindowText, QColor(44, 48, 56))
+        palette.setColor(QPalette.ColorRole.Base, QColor(255, 255, 255))
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(240, 241, 244))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 255))
+        palette.setColor(QPalette.ColorRole.ToolTipText, QColor(44, 48, 56))
+        palette.setColor(QPalette.ColorRole.Text, QColor(44, 48, 56))
+        palette.setColor(QPalette.ColorRole.Button, QColor(240, 241, 244))
+        palette.setColor(QPalette.ColorRole.ButtonText, QColor(44, 48, 56))
         palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-        palette.setColor(QPalette.ColorRole.Highlight, QColor(97, 218, 251))
-        palette.setColor(QPalette.ColorRole.HighlightedText, QColor(40, 44, 52))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(251, 114, 153))
+        palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
         self.setPalette(palette)
 
     def load_settings(self):
-        """加载用户设置，但不立即应用"""
         settings = {
             "last_dir": self.last_dir,
-            "cookie": ""
+            "cookie": "",
+            "resolution": "1080p",
+            "download_mode": "单集下载",
+            "danmu_mode": "否",
+            "yinshiping_mode": "否",
         }
         try:
             if os.path.exists(self.settings_file):
@@ -2475,40 +2619,67 @@ class BiliCrawlerGUI(QMainWindow):
         return settings
 
     def apply_settings(self):
-        """应用之前加载的设置"""
-        if hasattr(self, 'saved_settings'):
-            if 'last_dir' in self.saved_settings:
-                self.last_dir = self.saved_settings['last_dir']
-                if hasattr(self, 'path_input'):
-                    self.path_input.setText(self.last_dir)
-            if 'cookie' in self.saved_settings and hasattr(self, 'cookie_input'):
-                self.cookie_input.setText(self.saved_settings['cookie'])
+        if not hasattr(self, 'saved_settings'):
+            return
+
+        s = self.saved_settings
+
+        if 'last_dir' in s:
+            self.last_dir = s['last_dir']
+            if hasattr(self, 'path_input'):
+                self.path_input.setText(self.last_dir)
+
+        if 'cookie' in s and hasattr(self, 'cookie_input'):
+            self.cookie_input.setText(s['cookie'])
+
+        if hasattr(self, 'resolution_combo') and 'resolution' in s:
+            idx = self.resolution_combo.findText(s['resolution'])
+            if idx >= 0:
+                self.resolution_combo.setCurrentIndex(idx)
+
+        if hasattr(self, 'download_mode') and 'download_mode' in s:
+            idx = self.download_mode.findText(s['download_mode'])
+            if idx >= 0:
+                self.download_mode.setCurrentIndex(idx)
+
+        if hasattr(self, 'danmu_mode') and 'danmu_mode' in s:
+            idx = self.danmu_mode.findText(s['danmu_mode'])
+            if idx >= 0:
+                self.danmu_mode.setCurrentIndex(idx)
+
+        if hasattr(self, 'yinshiping_mode') and 'yinshiping_mode' in s:
+            idx = self.yinshiping_mode.findText(s['yinshiping_mode'])
+            if idx >= 0:
+                self.yinshiping_mode.setCurrentIndex(idx)
+
+        if hasattr(self, 'resolution_combo'):
+            self.resolution_combo.currentTextChanged.connect(self.save_settings)
+        if hasattr(self, 'download_mode'):
+            self.download_mode.currentTextChanged.connect(self.save_settings)
+        if hasattr(self, 'danmu_mode'):
+            self.danmu_mode.currentTextChanged.connect(self.save_settings)
+        if hasattr(self, 'yinshiping_mode'):
+            self.yinshiping_mode.currentTextChanged.connect(self.save_settings)
 
     def save_settings(self):
-        """保存用户设置"""
         settings = {
             "last_dir": self.last_dir,
-            "cookie": self.cookie_input.text().strip() if hasattr(self, 'cookie_input') else ""
+            "cookie": self.cookie_input.text().strip() if hasattr(self, 'cookie_input') else "",
+            "resolution": self.resolution_combo.currentText() if hasattr(self, 'resolution_combo') else "1080p",
+            "download_mode": self.download_mode.currentText() if hasattr(self, 'download_mode') else "单集下载",
+            "danmu_mode": self.danmu_mode.currentText() if hasattr(self, 'danmu_mode') else "否",
+            "yinshiping_mode": self.yinshiping_mode.currentText() if hasattr(self, 'yinshiping_mode') else "否",
         }
         try:
-            # 添加调试信息
-            print(f"📁 保存路径: {self.settings_file}")
-            print(f"📝 保存内容: {settings}")
-
             with open(self.settings_file, "w") as f:
-                json.dump(settings, f)
+                json.dump(settings, f, ensure_ascii=False, indent=2)
         except Exception as e:
             print(f"保存设置失败: {e}")
 
     def browse_save_dir(self):
-        """选择保存目录"""
-        options = QFileDialog.Option.ShowDirsOnly#只显示目录
-        # 打开系统原生的文件夹选择对话框
+        options = QFileDialog.Option.ShowDirsOnly
         save_dir = QFileDialog.getExistingDirectory(
-            self,
-            "选择保存文件夹",
-            self.last_dir,
-            options=options
+            self, "选择保存文件夹", self.last_dir, options=options
         )
         if save_dir:
             self.last_dir = save_dir
@@ -2516,89 +2687,49 @@ class BiliCrawlerGUI(QMainWindow):
             self.save_settings()
 
     def create_custom_input_dialog(self):
-        """创建自定义暗色主题的输入对话框"""
         dialog = QInputDialog(self)
-
-        # 设置对话框属性
         dialog.setWindowTitle("合集指定下载")
-        dialog.setLabelText("请输入要下载的集数范围：\n2-4《表示第二集至第四集》\n1,6,7 （是输入法英文的逗号）《表示第一集，第六集，第七集》")
+        dialog.setLabelText("请输入要下载的集数范围：\n2-4《表示第二集至第四集》\n1,6,7 （英文逗号）《表示第一集，第六集，第七集》")
         dialog.setTextValue("1-3")
         dialog.setInputMode(QInputDialog.InputMode.TextInput)
-
-        # 设置按钮文字为中文
         dialog.setOkButtonText("确定")
         dialog.setCancelButtonText("取消")
-
-        # 应用暗色主题样式
         dialog.setStyleSheet("""
-            QInputDialog {
-                background-color: #2c313c;
-                color: #d7dae0;
-                border: 1px solid #4b5262;
-                border-radius: 8px;
-            }
-            QLabel {
-                background-color: transparent;
-                color: #d7dae0;
-                font-size: 14px;
-                padding: 10px;
-            }
+            QInputDialog { background-color: #ffffff; }
+            QLabel { color: #2c3038; font-size: 13px; padding: 8px; }
             QLineEdit {
-                background-color: #353946;
-                color: #d7dae0;
-                border: 1px solid #4b5262;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 14px;
-                selection-background-color: #9400D3;
+                background-color: #f7f8fa;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+                selection-background-color: #fb7299;
             }
-            QLineEdit:focus {
-                border: 1px solid #9400D3;
-            }
+            QLineEdit:focus { border: 1px solid #fb7299; }
             QPushButton {
-                background-color: #4b5262;
-                color: #d7dae0;
+                background-color: #f0f1f4;
+                color: #2c3038;
                 border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-                font-size: 14px;
+                border-radius: 8px;
+                padding: 8px 18px;
+                font-size: 13px;
+                font-weight: bold;
                 min-width: 80px;
             }
-            QPushButton:hover {
-                background-color: #5b6375;
-            }
-            QPushButton:pressed {
-                background-color: #3e4451;
-            }
-            QPushButton:focus {
-                outline: none;
-                border: 1px solid #9400D3;
-            }
+            QPushButton:hover { background-color: #e3e6ec; }
+            QPushButton:pressed { background-color: #fb7299; color: #ffffff; }
         """)
-
-        # 调整对话框大小
-        dialog.resize(400, 200)
-
-        # 执行对话框
+        dialog.resize(420, 220)
         ok = dialog.exec()
         text = dialog.textValue()
-
         return text, ok
 
     def start_crawling(self):
-        """开始爬取视频"""
         try:
-            # 一次性获取所有输入并验证
             user_cookie = self.cookie_input.text().strip()
             url = self.url_input.text().strip()
             save_dir = self.path_input.text().strip()
-
-            # 集中验证输入
-            #下载360p视频可不登陆
-            # if not user_cookie:
-            #     QMessageBox.warning(self, "输入错误", "Cookie不能为空，请填写B站Cookie！")
-            #     self.cookie_input.setFocus()
-            #     return
 
             if not url:
                 QMessageBox.warning(self, "输入错误", "视频链接不能为空，请填写视频链接")
@@ -2607,7 +2738,7 @@ class BiliCrawlerGUI(QMainWindow):
 
             if not save_dir:
                 QMessageBox.warning(self, "输入错误", "保存路径不能为空，请填写保存路径")
-                self.browse_btn.click()  # 自动打开浏览对话框
+                self.browse_btn.click()
                 return
 
             quality = self.resolution_combo.currentText()[:-1]
@@ -2615,56 +2746,46 @@ class BiliCrawlerGUI(QMainWindow):
             baoliu_yinshiping = self.yinshiping_mode.currentText() == '是'
             download_series = self.download_mode.currentText()
 
-            # 处理合集指定下载的输入
             series_range = None
             if download_series == '单集下载':
                 download_series = 1
-                print(download_series)
             elif download_series == '合集下载':
                 download_series = 2
-                print(download_series)
             elif download_series == '合集指定下载':
                 download_series = 3
-                print(download_series)
-                # 创建自定义样式的输入对话框
                 text, ok = self.create_custom_input_dialog()
-
                 if not ok:
-                    self.status_label.setText("用户取消下载")
-                    self.status_label.setStyleSheet("color: #ffa500;")
+                    self.update_status("用户取消下载", "#e5a13b")
                     return
-
                 if not text.strip():
                     QMessageBox.warning(self, "输入错误", "请输入有效的集数范围！")
                     return
-
                 series_range = text.strip()
-                print(f"用户输入的下载范围: {series_range}")
-
             elif download_series == '收藏夹下载':
                 download_series = 4
-                print(download_series)
-
             elif download_series == '嵌套合集下载':
                 download_series = 5
-                print(download_series)
-
             else:
                 raise Exception('找不到指定类型')
 
-            # 更新爬虫的cookie
             self.crawler.update_cookie(user_cookie)
         except Exception as e:
-            # 统一的异常处理
             QMessageBox.critical(self, "系统错误", f"发生未知错误：{str(e)}\n请检查输入是否正确或重试")
-        # 禁用按钮并显示进度
+            return
+
         self.crawl_btn.setEnabled(False)
         self.progress_bar.show()
-        self.status_label.setText("正在初始化爬取...")
-        self.status_label.setStyleSheet("color: #61dafb;")
+        self.update_status("正在初始化爬取...", "#3b82f6")
         self.result_text.setText("准备爬取视频...")
-        # 创建工作线程
-        self.crawler_thread = CrawlerThread(self.crawler, url, save_dir, quality=quality, download_series=download_series,series_range=series_range,download_danmu=download_danmu,baoliu_yinshiping=baoliu_yinshiping)
+
+        self.crawler_thread = CrawlerThread(
+            self.crawler, url, save_dir,
+            quality=quality,
+            download_series=download_series,
+            series_range=series_range,
+            download_danmu=download_danmu,
+            baoliu_yinshiping=baoliu_yinshiping
+        )
         self.crawler_thread.progress_updated.connect(self.update_progress)
         self.crawler_thread.status_updated.connect(self.update_status)
         self.crawler_thread.download_complete.connect(self.on_download_complete)
@@ -2672,78 +2793,87 @@ class BiliCrawlerGUI(QMainWindow):
         self.crawler_thread.series_progress.connect(self.on_series_progress)
         self.crawler_thread.finished.connect(self.on_thread_finished)
         self.crawler_thread.result_message.connect(self.append_result_text)
-        self.crawler_thread.progress_updated.connect(self.update_progress_bar)  # 详细进度条
-        self.crawler_thread.series_progress.connect(self.update_series_status)  # 合集计数
-        # ✅ 确认这行存在
-        self.crawler_thread.show_collection_selector_signal.connect(self.on_show_collection_selector)#嵌套合集
+        self.crawler_thread.progress_updated.connect(self.update_progress_bar)
+        self.crawler_thread.series_progress.connect(self.update_series_status)
+        self.crawler_thread.show_collection_selector_signal.connect(self.on_show_collection_selector)
         self.crawler_thread.start()
 
     def on_show_collection_selector(self, titles):
-        """收到线程信号，显示合集选择弹框"""
         selected_list = self.show_collection_selector(titles)
-
         if selected_list:
-            # ✅ 显示在中间的结果框里（替换掉状态栏）
             self.result_text.setText(f"已选择 {len(selected_list)} 个合集：\n" + "\n".join(selected_list))
-
-            # ✅ 回传给线程
             self.crawler_thread.set_selected_titles(selected_list)
         else:
-            # ✅ 取消时也显示在结果框里
             self.result_text.setText("已取消选择合集")
             self.crawler_thread.set_selected_titles(None)
 
     def show_collection_selector(self, titles):
-        """
-        显示合集选择弹框（支持多选）
-
-        Args:
-            titles: 合集标题列表
-
-        Returns:
-            list: 选中的标题列表，取消返回 None
-        """
         dialog = QDialog(self)
         dialog.setWindowTitle("选择要下载的合集（可多选）")
-        dialog.setMinimumWidth(500)
-        dialog.setMinimumHeight(400)
+        dialog.setMinimumWidth(520)
+        dialog.setMinimumHeight(420)
+        dialog.setStyleSheet("""
+            QDialog { background-color: #ffffff; }
+            QLabel { color: #2c3038; font-size: 13px; }
+            QListWidget {
+                background-color: #f7f8fa;
+                color: #2c3038;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 6px;
+                font-size: 13px;
+                outline: none;
+            }
+            QListWidget::item {
+                padding: 8px 10px;
+                border-radius: 6px;
+            }
+            QListWidget::item:selected {
+                background-color: #fdeef3;
+                color: #fb7299;
+            }
+            QListWidget::item:hover {
+                background-color: #eef0f4;
+            }
+            QPushButton {
+                background-color: #f0f1f4;
+                color: #2c3038;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 20px;
+                font-size: 13px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #e3e6ec; }
+            QPushButton:pressed { background-color: #fb7299; color: #ffffff; }
+        """)
 
         layout = QVBoxLayout()
-
-        # 提示信息
         label = QLabel(f"共找到 {len(titles)} 个合集，请选择（Ctrl/Shift 可多选）：")
         layout.addWidget(label)
 
-        # 列表
         list_widget = QListWidget()
-        list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)  #多选模式
-
+        list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
         for title in titles:
             list_widget.addItem(title)
         if titles:
             list_widget.setCurrentRow(0)
         layout.addWidget(list_widget)
 
-        # 按钮
         btn_layout = QHBoxLayout()
         ok_btn = QPushButton("确认选择")
         cancel_btn = QPushButton("取消")
 
         def on_ok():
-            selected = [item.text() for item in list_widget.selectedItems()]  #返回列表
+            selected = [item.text() for item in list_widget.selectedItems()]
             if selected:
                 dialog.selected_titles = selected
                 dialog.accept()
             else:
-                # 可选：提示用户至少选择一个
-                from PyQt6.QtWidgets import QMessageBox
                 QMessageBox.warning(dialog, "提示", "请至少选择一个合集！")
 
-        def on_cancel():
-            dialog.reject()
-
         ok_btn.clicked.connect(on_ok)
-        cancel_btn.clicked.connect(on_cancel)
+        cancel_btn.clicked.connect(dialog.reject)
 
         btn_layout.addStretch()
         btn_layout.addWidget(ok_btn)
@@ -2753,68 +2883,85 @@ class BiliCrawlerGUI(QMainWindow):
         dialog.setLayout(layout)
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            return getattr(dialog, 'selected_titles', None)  # 返回列表或 None
+            return getattr(dialog, 'selected_titles', None)
         return None
 
     def update_progress(self, value, maximum):
-        """更新进度条"""
         self.progress_bar.setMaximum(maximum)
         self.progress_bar.setValue(value)
 
     def update_status(self, text, color):
-        """更新状态文本"""
         self.status_label.setText(text)
-        self.status_label.setStyleSheet(f"color: {color};")
+        self.status_label.setStyleSheet(f"""
+            QLineEdit {{
+                color: {color};
+                background-color: #f7f8fa;
+                border: 1px solid #e3e6ec;
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 13px;
+                selection-background-color: #fb7299;
+                selection-color: #ffffff;
+            }}
+            QLineEdit:focus {{
+                border: 1px solid #e3e6ec;
+            }}
+        """)
 
     def on_download_complete(self, file_type, path):
-        """下载完成回调"""
         if file_type == "video":
             self.result_text.setText(f"视频下载完成: {path}\n" + self.result_text.text())
         else:
             self.result_text.setText(f"音频下载完成: {path}\n" + self.result_text.text())
 
     def on_merge_complete(self, output_path):
-        """合并完成回调"""
         try:
-            # 使用append而不是setText + 拼接
             self.result_text.append(f"✅ 合并完成! 文件已保存到: {output_path}")
-
-            # 使用QTimer延迟显示消息框，避免竞争
             from PyQt6.QtCore import QTimer
             QTimer.singleShot(100, lambda:
             QMessageBox.information(self, "完成", f"视频已成功保存到:\n{output_path}"))
-
         except Exception as e:
             print(f"UI更新失败: {e}")
 
     def on_thread_finished(self):
-        """线程完成回调"""
         self.crawl_btn.setEnabled(True)
         self.progress_bar.hide()
 
     def on_series_progress(self, current, total):
-        """更新合集下载进度"""
-        self.status_label.setText(f"正在下载合集: {current}/{total}")
-        self.status_label.setStyleSheet("color: #61dafb;")
+        self.update_status(f"正在下载合集: {current}/{total}", "#3b82f6")
 
     def append_result_text(self, message):
-        """追加结果消息到界面"""
-        # current_text = self.result_text.text()
-        # self.result_text.setText(current_text + message)
-        # 如果是QTextEdit，可以使用append方法
-        self.result_text.append(message)
+        msg = message.strip()
+        if not msg:
+            return
+
+        timestamp = time.strftime("[%H:%M:%S]")
+
+        if msg.startswith("✅") or "完成" in msg or "成功" in msg:
+            color = "#3fa45b"
+        elif msg.startswith("❌") or "失败" in msg or "错误" in msg:
+            color = "#e05f85"
+        elif msg.startswith("⚠️") or "警告" in msg:
+            color = "#e5a13b"
+        else:
+            color = "#6b7280"
+
+        safe = (msg.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;"))
+
+        self.result_text.append(
+            f'<span style="color:#b0b6c0;">{timestamp}</span> '
+            f'<span style="color:{color};">{safe}</span>'
+        )
 
     def update_progress_bar(self, current, total):
-        """更简单的进度条更新"""
         self.progress_bar.setMaximum(100)
         self.progress_bar.setValue(current)
         self.progress_bar.setFormat(f"{current}%")
 
     def update_series_status(self, current, total):
-        """更新合集计数状态"""
-        self.status_label.setText(f"正在下载合集 ({current}/{total})")
-
-
+        self.update_status(f"正在下载合集 ({current}/{total})", "#3b82f6")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)# 创建Qt应用实例
