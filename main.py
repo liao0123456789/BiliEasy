@@ -14,7 +14,7 @@ from urllib.parse import urlparse, urlunparse,parse_qs
 from PyQt6.QtGui import QFont, QIcon, QColor, QPalette,QDesktopServices
 from PyQt6.QtWidgets import (
     QApplication,QInputDialog, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QPushButton, QLabel, QFileDialog, QProgressBar, QMessageBox,QComboBox,QDialog,QTextEdit,QFrame,QListWidget
+    QLineEdit, QPushButton, QLabel, QFileDialog, QProgressBar, QMessageBox,QComboBox,QDialog,QTextEdit,QFrame,QListWidget,QButtonGroup
 )
 
 
@@ -184,47 +184,73 @@ class BiliCrawler:
         flag = data['data']['has_more']  # 获取has_more这个标识符
         return flag
 
-    def get_duo_bvid_page_title(self,html_text):
+    # def get_duo_bvid_page_title(self,html_text):
+    #
+    #     # 假设html_text是你提供的HTML字符串
+    #     soup = BeautifulSoup(html_text, 'html.parser')
+    #
+    #     # 查找所有包含data-key属性的div元素
+    #     video_items = soup.find_all('div', {'class': 'pod-item', 'data-key': True})
+    #
+    #     results = []
+    #
+    #     for item in video_items:
+    #         # # 提取bvid
+    #         # bvid = item.get('data-key')
+    #         #
+    #         # 提取标题
+    #         title_element = item.find('div', class_='title-txt')
+    #         title = title_element.get_text(strip=True) if title_element else "无标题"
+    #         #
+    #         # # 提取时长
+    #         # duration_element = item.find('div', class_='duration')
+    #         # duration = duration_element.get_text(strip=True) if duration_element else "未知时长"
+    #         #
+    #         results.append({
+    #             # 'bvid': bvid,
+    #             'title': title,
+    #             # 'duration': duration,
+    #             # 'url': f"https://www.bilibili.com/video/{bvid}"
+    #         })
+    #     l = []
+    #     # 打印结果
+    #     for i, result in enumerate(results, 1):
+    #         # print(result['title'])
+    #         l.append(result['title'])
+    #         # print(f"{i:2d}. BV号: {result['bvid']}")
+    #         # print(f"    标题: {result['title']}")
+    #         # print(f"    时长: {result['duration']}")
+    #         # print(f"    链接: {result['url']}")
+    #         # print()
+    #
+    #     return l
+    def get_duo_bvid_page_title(self, html_text):
 
-        # 假设html_text是你提供的HTML字符串
         soup = BeautifulSoup(html_text, 'html.parser')
-
-        # 查找所有包含data-key属性的div元素
         video_items = soup.find_all('div', {'class': 'pod-item', 'data-key': True})
 
-        results = []
+        titles = []
 
         for item in video_items:
-            # # 提取bvid
-            # bvid = item.get('data-key')
-            #
-            # 提取标题
-            title_element = item.find('div', class_='title-txt')
-            title = title_element.get_text(strip=True) if title_element else "无标题"
-            #
-            # # 提取时长
-            # duration_element = item.find('div', class_='duration')
-            # duration = duration_element.get_text(strip=True) if duration_element else "未知时长"
-            #
-            results.append({
-                # 'bvid': bvid,
-                'title': title,
-                # 'duration': duration,
-                # 'url': f"https://www.bilibili.com/video/{bvid}"
-            })
-        l = []
-        # 打印结果
-        for i, result in enumerate(results, 1):
-            # print(result['title'])
-            l.append(result['title'])
-            # print(f"{i:2d}. BV号: {result['bvid']}")
-            # print(f"    标题: {result['title']}")
-            # print(f"    时长: {result['duration']}")
-            # print(f"    链接: {result['url']}")
-            # print()
+            title = ''
 
-        return l
+            # 方式1：找 div.title 的 title 属性（当前这种页面）
+            title_div = item.find('div', class_='title')
+            if title_div:
+                title = title_div.get('title', '').strip()
+                if not title:
+                    # 方式2：找 title-txt（嵌套合集那种页面）
+                    txt_div = title_div.find('div', class_='title-txt')
+                    if txt_div:
+                        title = txt_div.get_text(strip=True)
 
+            # 方式3：兜底，直接取 div.title 的文本
+            if not title and title_div:
+                title = title_div.get_text(strip=True)
+
+            titles.append(title or "无标题")
+
+        return titles
     def get_dange_bvid_page_title(self, html_content):
 
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -640,9 +666,10 @@ class BiliCrawler:
         match1 = re.search(r'<div class="amt" data-v-dac4fbd2>（(\d+)/(\d+)）</div>', str_text)
         match2 = re.search(r'<div class="amt" data-v-625117f2>（(\d+)/(\d+)）</div>', str_text)
         match3 = re.search(r'<div class="amt" data-v-687ba2be>（(\d+)/(\d+)）</div>', str_text)
+        match4 = re.search(r'<div class="amt" data-v-172405b0>（(\d+)/(\d+)）</div>', str_text)
 
         # 优先取 match1，没有则取 match2
-        match = match1 or match2 or match3
+        match = match1 or match2 or match3 or match4
 
         if not match:
             return None
@@ -1893,7 +1920,7 @@ class AboutDialog(QDialog):
         layout.addWidget(title_label)
 
         desc_label = QLabel(
-            "版本: v2.0.25\n"
+            "版本: v2.0.27\n"
             "B站视频下载工具\n"
             "PyQt6 + 爬虫 + Protobuf 弹幕解析\n"
             "欢迎通过以下链接了解更多："
@@ -2170,8 +2197,7 @@ class BiliCrawlerGUI(QMainWindow):
         side_layout.addLayout(brand_row)
         side_layout.addSpacing(12)
 
-        # ---- 导航按钮（互斥） ----
-        from PyQt6.QtWidgets import QButtonGroup
+
 
         self.nav_group = QButtonGroup(self)
         self.nav_group.setExclusive(True)
@@ -2203,7 +2229,7 @@ class BiliCrawlerGUI(QMainWindow):
         info_box = QVBoxLayout()
         info_box.setSpacing(4)
 
-        version_edit = QLineEdit("v2.0.25")
+        version_edit = QLineEdit("v2.0.27")
         version_edit.setReadOnly(True)
         version_edit.setCursorPosition(0)
         version_edit.setStyleSheet("""
@@ -2217,6 +2243,7 @@ class BiliCrawlerGUI(QMainWindow):
                 selection-color: #ffffff;
             }
         """)
+
         info_box.addWidget(version_edit)
 
         group_edit = QLineEdit("QQ群 580376200")
@@ -2510,6 +2537,7 @@ class BiliCrawlerGUI(QMainWindow):
         status_layout.addWidget(self.progress_bar)
 
         self.result_text = QTextEdit()
+        self.result_text.document().setMaximumBlockCount(500)
         self.result_text.setReadOnly(True)
         self.result_text.setPlaceholderText("下载日志会显示在这里...")
         self.result_text.setMinimumHeight(140)
